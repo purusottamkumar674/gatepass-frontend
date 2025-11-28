@@ -260,7 +260,7 @@ const StatCard = ({ label, value, trend }) => (
 export const ProfileCard = ({ user }) => (
   <Card className="p-6">
     <div className="flex items-center gap-4">
-      <div className="h-16 w-16 rounded-2xl bg-indigo-200" />
+      <img className="h-16 w-16 rounded-2xl bg-indigo-200" src="/profile.jpg"/>
       <div>
         <p className="text-lg font-semibold">{user.name}</p>
         <p className="text-sm text-gray-600">{user.roll} • {user.department}</p>
