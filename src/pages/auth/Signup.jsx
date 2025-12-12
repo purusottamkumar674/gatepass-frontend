@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/axios";
+import { useToast } from "@/hooks/use-toast";
 
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,11 +12,12 @@ import {
   SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [usertype, setUsertype] = useState("student");
   const [loading, setLoading] = useState(false);
@@ -23,21 +25,35 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const data = new FormData(e.target);
-    const payload = Object.fromEntries(data.entries());
+    const form = new FormData(e.target);
+    const payload = Object.fromEntries(form.entries());
+    payload.usertype = usertype;
 
-    payload.usertype = usertype; // ensure correct role is sent
-
-    setLoading(true);
     try {
-      const res = await api.post("/accounts/signup/", payload);
-      alert("Signup successful! Please login.");
+      setLoading(true);
+      await api.post("/accounts/signup/", payload);
+
+      toast({
+        title: "Account created",
+        description: "You can now login with your credentials.",
+      });
+
       navigate("/login");
     } catch (err) {
-      console.error(err.response?.data);
-      alert(err.response?.data?.message || "Signup failed");
+      const data = err.response?.data;
+      const message =
+        typeof data === "string"
+          ? data
+          : data?.detail || "Signup failed. Please check inputs.";
+
+      toast({
+        variant: "destructive",
+        title: "Signup failed",
+        description: message,
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -46,42 +62,17 @@ export default function Signup() {
         <h2 className="text-2xl font-semibold text-center">Create an Account</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* USERNAME */}
-          <div className="space-y-1">
-            <Label>Username</Label>
-            <Input name="username" required />
-          </div>
+          <Field label="Username" name="username" />
+          <Field label="Password" name="password" type="password" />
+          <Field label="First Name" name="first_name" />
+          <Field label="Last Name" name="last_name" />
+          <Field label="Email" name="email" type="email" />
 
-          {/* PASSWORD */}
-          <div className="space-y-1">
-            <Label>Password</Label>
-            <Input type="password" name="password" required />
-          </div>
-
-          {/* FIRST NAME */}
-          <div className="space-y-1">
-            <Label>First Name</Label>
-            <Input name="first_name" required />
-          </div>
-
-          {/* LAST NAME */}
-          <div className="space-y-1">
-            <Label>Last Name</Label>
-            <Input name="last_name" required />
-          </div>
-
-          {/* EMAIL */}
-          <div className="space-y-1">
-            <Label>Email</Label>
-            <Input type="email" name="email" required />
-          </div>
-
-          {/* SELECT USER TYPE */}
           <div className="space-y-1">
             <Label>User Type</Label>
-            <Select onValueChange={setUsertype} value={usertype}>
+            <Select value={usertype} onValueChange={setUsertype}>
               <SelectTrigger>
-                <SelectValue placeholder="Select user type" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="student">Student</SelectItem>
@@ -90,34 +81,17 @@ export default function Signup() {
             </Select>
           </div>
 
-          {/* STUDENT FIELDS */}
           {usertype === "student" && (
             <>
-              <div className="space-y-1">
-                <Label>PRN</Label>
-                <Input name="prn" required />
-              </div>
-
-              <div className="space-y-1">
-                <Label>Branch</Label>
-                <Input name="branch" required />
-              </div>
-
-              <div className="space-y-1">
-                <Label>Hostel</Label>
-                <Input name="hostel" required />
-              </div>
+              <Field label="PRN" name="prn" />
+              <Field label="Branch" name="branch" />
+              <Field label="Hostel" name="hostel" />
             </>
           )}
 
-          {/* STAFF FIELDS */}
           {usertype === "staff" && (
             <>
-              <div className="space-y-1">
-                <Label>Department</Label>
-                <Input name="department" required />
-              </div>
-
+              <Field label="Department" name="department" />
               <div className="space-y-1">
                 <Label>Role</Label>
                 <Select name="role">
@@ -126,7 +100,7 @@ export default function Signup() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="hod">Head of Department</SelectItem>
+                    <SelectItem value="hod">HOD</SelectItem>
                     <SelectItem value="warden">Warden</SelectItem>
                     <SelectItem value="dean">Principal</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
@@ -136,14 +110,15 @@ export default function Signup() {
             </>
           )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button className="w-full" disabled={loading}>
             {loading ? "Creating..." : "Create Account"}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <button
+            type="button"
             className="text-indigo-600 hover:underline"
             onClick={() => navigate("/login")}
           >
@@ -151,6 +126,15 @@ export default function Signup() {
           </button>
         </p>
       </Card>
+    </div>
+  );
+}
+
+function Field({ label, ...props }) {
+  return (
+    <div className="space-y-1">
+      <Label>{label}</Label>
+      <Input {...props} required />
     </div>
   );
 }

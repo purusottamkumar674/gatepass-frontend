@@ -1,38 +1,26 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-export default function SidebarLink({ label, to, active, icon: Icon }) {
+export default function SidebarLink({ label, to, icon: Icon, collapsed }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const full = (
+  const active = location.pathname.startsWith(to);
+
+  return (
     <button
       onClick={() => navigate(to)}
-      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
-      ${
-        active
-          ? "bg-indigo-100 text-indigo-700"
-          : "text-gray-700 hover:bg-gray-100"
-      }`}
+      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
+        ${
+          active
+            ? "bg-indigo-100 text-indigo-700"
+            : "text-gray-700 hover:bg-gray-100"
+        }
+        ${collapsed ? "justify-center" : ""}
+      `}
     >
-      <Icon className="h-5 w-5" />
-      {label}
+      <Icon className="h-5 w-5 shrink-0" />
+      {!collapsed && <span>{label}</span>}
     </button>
   );
-
-  const iconOnly = (
-    <button
-      onClick={() => navigate(to)}
-      className={`p-2 rounded-lg grid place-items-center transition
-      ${
-        active
-          ? "bg-indigo-100 text-indigo-700"
-          : "text-gray-700 hover:bg-gray-100"
-      }`}
-    >
-      <Icon className="h-5 w-5" />
-    </button>
-  );
-
-  return { full, iconOnly };
 }
-
 

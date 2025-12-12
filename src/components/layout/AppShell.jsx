@@ -1,4 +1,5 @@
 import { useState } from "react";
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,23 +11,24 @@ import { useNavigate } from "react-router-dom";
 export default function AppShell({ title, nav, children }) {
   const [collapsed, setCollapsed] = useState(false);
 
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* SIDEBAR */}
       <aside
-        className={`h-screen bg-white border-r transition-all duration-300 
+        className={`h-screen bg-white border-r transition-all duration-300
         ${collapsed ? "w-16" : "w-60"}`}
       >
         <Card className="h-full rounded-none p-4 flex flex-col">
-          {/* Header */}
+          {/* HEADER */}
           <div className="flex items-center justify-between mb-4">
             {!collapsed && (
               <div className="flex items-center gap-2">
                 <img
                   src="/sandip_university.png"
+                  alt="Logo"
                   className="rounded-full w-10 h-10"
                 />
                 <div>
@@ -51,39 +53,52 @@ export default function AppShell({ title, nav, children }) {
 
           {/* NAVIGATION */}
           <nav className="space-y-1 flex-1">
-            {nav.map((item) => (collapsed ? item.iconOnly : item.full))}
+            {nav.map((item, index) =>
+              item
+                ? (
+                  <div key={index}>
+                    {React.cloneElement(item, { collapsed })}
+                  </div>
+                )
+                : null
+            )}
           </nav>
 
-          {/* BOTTOM PROFILE + LOGOUT */}
+          {/* PROFILE + LOGOUT */}
           <div className="mt-auto space-y-2">
-            {/* PROFILE (expanded only) */}
-            {!collapsed && (
+            {!collapsed && user && (
               <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border">
-                <img src="/profile.jpg" className="w-10 h-10 rounded-full" />
+                <img
+                  src="/profile.jpg"
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full"
+                />
                 <div>
-                  <p className="font-medium text-sm">Aakash Kumar</p>
-                  <p className="text-xs text-gray-500">Student</p>
+                  <p className="font-medium text-sm">
+                    {user.first_name || user.username}
+                  </p>
+                  <p className="text-xs text-gray-500 capitalize">
+                    {user.usertype}
+                  </p>
                 </div>
               </div>
             )}
-
-            {/* LOGOUT BUTTON */}
-
             <button
               onClick={() => {
                 logout();
-                navigate("/login");
-                }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition
-      ${
-        collapsed
-          ? "justify-center"
-          : "text-gray-700 hover:bg-red-50 hover:text-red-600"
-      }`}
+                navigate("/login", { replace: true });
+              }}
+              title={collapsed ? "Logout" : undefined}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
+                ${
+                  collapsed
+                    ? "justify-center text-gray-700 hover:bg-red-50 hover:text-red-600"
+                    : "text-gray-700 hover:bg-red-50 hover:text-red-600"
+                }`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="h-5 w-5 shrink-0"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -94,17 +109,20 @@ export default function AppShell({ title, nav, children }) {
                 <path d="M10 7l-5 5 5 5" />
                 <path d="M3 12h12" />
               </svg>
-              {!collapsed && "Logout"}
+
+              {!collapsed && <span>Logout</span>}
             </button>
+
+
           </div>
         </Card>
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
-          <Input placeholder="Search…" className="w-64" />
+          <Input placeholder="Search…" className="w-64 hidden md:block" />
         </div>
 
         {children}
@@ -112,3 +130,4 @@ export default function AppShell({ title, nav, children }) {
     </div>
   );
 }
+

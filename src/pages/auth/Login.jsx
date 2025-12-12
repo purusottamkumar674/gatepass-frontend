@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/axios";
+import { useToast } from "@/hooks/use-toast";
 
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +11,9 @@ import { Label } from "@/components/ui/label";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth(); // from context
+  const { login } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,25 +24,37 @@ export default function Login() {
     };
 
     try {
+      setLoading(true);
       const res = await api.post("/accounts/login/", payload);
-      const data = res.data;
-      const usertype = data.user.usertype;
-      console.log(usertype);
 
-      // Save data to context + localStorage
-      login(data.user, data.tokens);
+      const { user, tokens } = res.data;
+      login(user, tokens);
 
-      // Redirect to dashboard
-      if (usertype == "student") {
-        navigate("/student-dashboard");
-      } else if (usertype == "staff") {
-        navigate("/staff-dashboard");
+      toast({
+        title: "Login successful",
+        description: `Welcome back, ${user.username}`,
+      });
+
+      if (user.usertype === "student") {
+        navigate("/student", { replace: true });
+      } else if (user.usertype === "staff") {
+        navigate("/staff", { replace: true });
       } else {
-        navigate("dashboard");
+        navigate("/admin", { replace: true });
       }
     } catch (err) {
-      console.error("Login failed:", err.response?.data);
-      alert(err.response?.data?.message || "Invalid credentials!");
+      const message =
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        "Invalid username or password";
+
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: message,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,7 +66,7 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <Label>Username</Label>
-            <Input name="username" type="text" required />
+            <Input name="username" required />
           </div>
 
           <div className="space-y-1">
@@ -58,13 +74,15 @@ export default function Login() {
             <Input name="password" type="password" required />
           </div>
 
-          <Button className="w-full" type="submit">
-            Sign in
+          <Button className="w-full" disabled={loading}>
+            {loading ? "Signing in..." : "Sign in"}
           </Button>
-          <p>
-            Don't have an account?
+
+          <p className="text-center text-sm text-muted-foreground">
+            Don’t have an account?{" "}
             <button
-              className="text-indigo-600"
+              type="button"
+              className="text-indigo-600 hover:underline"
               onClick={() => navigate("/signup")}
             >
               Sign up
@@ -75,3 +93,4 @@ export default function Login() {
     </div>
   );
 }
+
