@@ -20,6 +20,7 @@ import PendingRequests from "@/pages/staff/PendingRequests";
 
 // Icons
 import { Home, FileText, ListTodo, User, CheckSquare } from "lucide-react";
+import LeaveRequestDetail from "./pages/staff/LeaveRequestDetail";
 
 export default function App() {
   const location = useLocation();
@@ -92,6 +93,11 @@ export default function App() {
           <Route index element={<StaffDashboard />} />
           <Route path="pending" element={<PendingRequests />} />
           <Route path="profile" element={<Profile />} />
+          <Route
+            path="/staff/leave-requests/:id"
+            element={<LeaveRequestDetail />}
+          />
+
         </Route>
 
         {/* Default */}

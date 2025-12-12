@@ -3,8 +3,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 export default function SidebarLink({ label, to, icon: Icon, collapsed }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const pathname = location.pathname;
 
-  const active = location.pathname.startsWith(to);
+  const isRootDashboard = to === "/student" || to === "/staff";
+
+  const active = isRootDashboard
+    ? pathname === to
+    : pathname === to || pathname.startsWith(to + "/");
 
   return (
     <button
