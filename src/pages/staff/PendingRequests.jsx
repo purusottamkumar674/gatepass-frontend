@@ -19,13 +19,13 @@ export default function PendingRequests() {
   }, []);
 
   const approve = async (id) => {
-    await api.patch(`/api/leave-requests/${id}/approve/`);
+    await api.post(`/api/leave-requests/${id}/approve/`);
     setSelected(null);
     fetchPending();
   };
 
   const reject = async (id) => {
-    await api.patch(`/api/leave-requests/${id}/reject/`);
+    await api.post(`/api/leave-requests/${id}/reject/`);
     setSelected(null);
     fetchPending();
   };

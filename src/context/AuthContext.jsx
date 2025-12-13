@@ -1,8 +1,11 @@
 import { createContext, useContext, useState } from "react";
+import { api } from "../lib/axios";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  const [loading, setLoading] = useState(false);
+
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
@@ -13,10 +16,12 @@ export function AuthProvider({ children }) {
     return savedTokens ? JSON.parse(savedTokens) : null;
   });
 
+
   // LOGIN
   const login = (userData, tokenData) => {
     setUser(userData);
     setTokens(tokenData);
+
 
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("tokens", JSON.stringify(tokenData));
@@ -40,4 +45,3 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
-

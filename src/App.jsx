@@ -21,6 +21,7 @@ import PendingRequests from "@/pages/staff/PendingRequests";
 // Icons
 import { Home, FileText, ListTodo, User, CheckSquare } from "lucide-react";
 import LeaveRequestDetail from "./pages/staff/LeaveRequestDetail";
+import SessionExpiredDialog from "./components/SessionExpiredDialog";
 
 export default function App() {
   const location = useLocation();
@@ -106,6 +107,7 @@ export default function App() {
       </Routes>
 
       <Toaster />
+      <SessionExpiredDialog />
     </>
   );
 }

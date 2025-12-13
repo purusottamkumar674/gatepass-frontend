@@ -5,46 +5,52 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (!user)
-    return <p className="text-center mt-10 text-red-500">User not logged in.</p>;
+  if (loading) {
+    return <p className="text-center mt-10">Loading profile…</p>;
+  }
 
-  const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+  if (!user) {
+    return (
+      <p className="text-center mt-10 text-red-500">
+        User not logged in.
+      </p>
+    );
+  }
 
-  // Flags
+  const fullName =
+    `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+    user.username;
+
   const isStudent = user.usertype === "student";
   const isStaff = user.usertype === "staff";
 
+  const student = user.student_profile;
+  const staff = user.staff_profile;
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-
-      {/* Top Profile Card */}
+      {/* Top Card */}
       <Card className="p-6 flex items-center gap-6">
         <Avatar className="w-20 h-20">
           <AvatarImage src="/profile.jpg" />
           <AvatarFallback>
-            {user.username?.slice(0, 2).toUpperCase()}
+            {user.username.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
 
         <div className="flex-1">
-          <h2 className="text-2xl font-semibold">
-            {fullName || user.username}
-          </h2>
-
-          {/* SHOW USERTYPE CLEANLY */}
+          <h2 className="text-2xl font-semibold">{fullName}</h2>
           <p className="text-sm text-muted-foreground capitalize">
-            {user.usertype === "student" ? "Student" : "Staff"}
+            {user.usertype}
           </p>
         </div>
 
-        <Badge className="text-sm" variant="success">
-          Active
-        </Badge>
+        <Badge variant="success">Active</Badge>
       </Card>
 
-      {/* Details Card */}
+      {/* Details */}
       <Card className="p-6 space-y-4">
         <h3 className="text-lg font-semibold">Account Details</h3>
         <Separator />
@@ -53,26 +59,26 @@ export default function Profile() {
           <Info label="Username" value={user.username} />
           <Info label="Email" value={user.email || "Not Provided"} />
 
-          {/* Student Fields */}
-          {isStudent && (
+          {isStudent && student && (
             <>
-              <Info label="PRN" value={user.prn || "Not Provided"} />
-              <Info label="Branch" value={user.branch || "Not Provided"} />
-              <Info label="Hostel" value={user.hostel || "Not Provided"} />
+              <Info label="PRN" value={student.prn} />
+              <Info label="Branch" value={student.branch} />
+              <Info label="Hostel" value={student.hostel} />
+              <Info label="Parent Name" value={student.parents_name || "—"} />
+              <Info label="Parent Number" value={student.parents_number || "—"} />
             </>
           )}
 
-          {/* Staff Fields */}
-          {isStaff && (
+          {isStaff && staff && (
             <>
-              <Info label="Department" value={user.department || "Not Provided"} />
+              <Info label="Department" value={staff.department} />
               <Info
                 label="Role"
-                value={
-                  user.role
-                    ? user.role.replace("_", " ").replace(/^\w/, c => c.toUpperCase())
-                    : "Not Provided"
-                }
+                value={staff.role.charAt(0).toUpperCase() + staff.role.slice(1)}
+              />
+              <Info
+                label="Admin Approved"
+                value={staff.admin_approved ? "Yes" : "No"}
               />
             </>
           )}

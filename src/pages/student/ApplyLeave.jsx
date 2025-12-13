@@ -52,8 +52,9 @@ export default function ApplyLeave() {
 
     try {
       setLoading(true);
+      console.log(form)
 
-      const res = await api.post("/api/leave-request/", form);
+      const res = await api.post("/api/leave-requests/", form);
 
       toast({
         title: "Leave request submitted",
@@ -92,8 +93,8 @@ export default function ApplyLeave() {
                   <SelectValue placeholder="Select leave type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="Normal">Normal</SelectItem>
+                  <SelectItem value="Urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
             </div>
