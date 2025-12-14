@@ -86,6 +86,8 @@ export default function Signup() {
               <Field label="PRN" name="prn" />
               <Field label="Branch" name="branch" />
               <Field label="Hostel" name="hostel" />
+              <Field label="Parents Name" name="parents_name" />
+              <Field label="Parents Number" name="parents_number" />
             </>
           )}
 
