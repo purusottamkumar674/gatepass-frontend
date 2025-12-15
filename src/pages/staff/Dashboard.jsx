@@ -11,21 +11,27 @@ export default function StaffDashboard() {
   const [activeStatus, setActiveStatus] = useState("All");
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const res = await api.get("/api/leave-requests/");
-        setRequests(res.data);
-      } catch (err) {
-        console.error("Failed to load leave requests", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRequests();
   }, []);
 
-  // ===== stats =====
+  const fetchRequests = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/api/leave-requests/");
+      // ✅ IMPORTANT FIX
+      setRequests(Array.isArray(res.data.results) ? res.data.results : []);
+    } catch (err) {
+      console.error("Failed to load leave requests", err);
+      setRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================
+     Stats
+     ========================= */
+
   const stats = useMemo(() => {
     return {
       total: requests.length,
@@ -35,11 +41,22 @@ export default function StaffDashboard() {
     };
   }, [requests]);
 
-  // ===== filtered list =====
+  /* =========================
+     Filtered list
+     ========================= */
+
   const filteredRequests = useMemo(() => {
     if (activeStatus === "All") return requests;
     return requests.filter(r => r.final_status === activeStatus);
   }, [requests, activeStatus]);
+
+  /* =========================
+     Loading state
+     ========================= */
+
+  if (loading) {
+    return <Loader className="min-h-[60vh]" label="Loading leave requests…" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -71,10 +88,7 @@ export default function StaffDashboard() {
 
       {/* ===== LIST ===== */}
       <div className="space-y-4">
-        {loading && <Loader className="min-h-[60vh]" label="Loading…" />}
-
-
-        {!loading && filteredRequests.length === 0 && (
+        {filteredRequests.length === 0 && (
           <p className="text-sm text-muted-foreground">
             No leave requests found.
           </p>
@@ -103,7 +117,6 @@ function LeaveRow({ request }) {
     <Card className="p-4 space-y-4">
       {/* ===== TOP ROW ===== */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {/* Left */}
         <div className="space-y-1">
           <p className="font-medium">{request.subject}</p>
           <p className="text-sm text-muted-foreground">
@@ -114,7 +127,6 @@ function LeaveRow({ request }) {
           </p>
         </div>
 
-        {/* Final Status */}
         <span
           className={`px-3 py-1 rounded-full text-xs font-medium w-fit ${
             statusStyles[request.final_status]
@@ -126,26 +138,10 @@ function LeaveRow({ request }) {
 
       {/* ===== APPROVAL STATUS ===== */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
-        <ApprovalStatus
-          label="HOD"
-          approved={request.approvedby_hod}
-          time={request.approvedby_hod_at}
-        />
-        <ApprovalStatus
-          label="Dean"
-          approved={request.approvedby_dean}
-          time={request.approvedby_dean_at}
-        />
-        <ApprovalStatus
-          label="Warden"
-          approved={request.approvedby_warden}
-          time={request.approvedby_warden_at}
-        />
-        <ApprovalStatus
-          label="Admin"
-          approved={request.approvedby_admin}
-          time={request.approvedby_admin_at}
-        />
+        <ApprovalStatus label="HOD" approved={request.approvedby_hod} time={request.approvedby_hod_at} />
+        <ApprovalStatus label="Dean" approved={request.approvedby_dean} time={request.approvedby_dean_at} />
+        <ApprovalStatus label="Warden" approved={request.approvedby_warden} time={request.approvedby_warden_at} />
+        <ApprovalStatus label="Admin" approved={request.approvedby_admin} time={request.approvedby_admin_at} />
       </div>
     </Card>
   );
@@ -185,12 +181,10 @@ function Stat({ label, value }) {
 }
 
 function formatDate(date) {
-  if (!date) return "—";
-  return new Date(date).toLocaleDateString();
+  return date ? new Date(date).toLocaleDateString() : "—";
 }
 
 function formatDateTime(date) {
-  if (!date) return "—";
-  return new Date(date).toLocaleString();
+  return date ? new Date(date).toLocaleString() : "—";
 }
 

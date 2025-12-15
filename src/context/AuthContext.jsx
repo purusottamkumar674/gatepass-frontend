@@ -3,17 +3,20 @@ import { api } from "../lib/axios";
 
 const AuthContext = createContext();
 
+/* ---------- Safe JSON parse ---------- */
+function safeParse(key) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  } catch {
+    localStorage.removeItem(key); // corrupted → cleanup
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  const [tokens, setTokens] = useState(() => {
-    const saved = localStorage.getItem("tokens");
-    return saved ? JSON.parse(saved) : null;
-  });
-
+  const [user, setUser] = useState(() => safeParse("user"));
+  const [tokens, setTokens] = useState(() => safeParse("tokens"));
   const [loading, setLoading] = useState(true);
 
   const fetchMe = async () => {
@@ -22,7 +25,9 @@ export function AuthProvider({ children }) {
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
     } catch (err) {
-      if (err.response?.status === 401) logout();
+      if (err.response?.status === 401) {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
@@ -57,3 +62,4 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+

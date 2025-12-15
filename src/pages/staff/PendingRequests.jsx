@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Loader } from "@/components/ui/loader";
 import { api } from "@/lib/axios";
 import LeaveRequestDetail from "./LeaveRequestDetail";
-import { Loader2 } from "lucide-react";
 
 export default function PendingRequests() {
   const [requests, setRequests] = useState([]);
@@ -12,22 +12,25 @@ export default function PendingRequests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    fetchPending();
+  }, []);
+
   const fetchPending = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await api.get("/api/leave-requests/?status=Pending");
-      setRequests(res.data);
+      // ✅ IMPORTANT FIX (pagination-safe)
+      setRequests(Array.isArray(res.data.results) ? res.data.results : []);
       setError(null);
     } catch (err) {
+      console.error(err);
       setError("Unable to load pending requests.");
+      setRequests([]);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchPending();
-  }, []);
 
   const approve = async (id) => {
     await api.post(`/api/leave-requests/${id}/approve/`);
@@ -53,6 +56,15 @@ export default function PendingRequests() {
     );
   }
 
+  /* ---------------- Loading ---------------- */
+  if (loading) {
+    return (
+      <Card className="p-6">
+        <Loader className="min-h-[40vh]" label="Loading pending requests…" />
+      </Card>
+    );
+  }
+
   /* ---------------- List View ---------------- */
   return (
     <Card className="p-4 md:p-6">
@@ -60,36 +72,29 @@ export default function PendingRequests() {
         Pending Leave Requests
       </h2>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-10 text-muted-foreground">
-          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-          Loading requests…
-        </div>
-      )}
-
       {/* Error */}
-      {!loading && error && (
+      {error && (
         <div className="text-center text-red-500 py-8">
           {error}
         </div>
       )}
 
       {/* Empty */}
-      {!loading && !error && requests.length === 0 && (
+      {!error && requests.length === 0 && (
         <div className="text-center text-muted-foreground py-8">
           No pending leave requests.
         </div>
       )}
 
       {/* List */}
-      {!loading && !error && requests.length > 0 && (
+      {!error && requests.length > 0 && (
         <div className="space-y-3">
           {requests.map((req) => (
             <div
               key={req.id}
-              className="flex flex-col gap-3 rounded-xl border p-4 transition hover:bg-muted/40
-                         sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-xl border p-4 transition
+                         hover:bg-muted/40 sm:flex-row sm:items-center
+                         sm:justify-between"
             >
               <div className="min-w-0">
                 <p className="font-medium truncate">

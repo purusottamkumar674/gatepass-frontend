@@ -22,6 +22,8 @@ import PendingRequests from "@/pages/staff/PendingRequests";
 import { Home, FileText, ListTodo, User, CheckSquare } from "lucide-react";
 import LeaveRequestDetail from "./pages/staff/LeaveRequestDetail";
 import SessionExpiredDialog from "./components/SessionExpiredDialog";
+import GatePassListPage from "./pages/staff/GatePassList";
+import { Ticket } from "lucide-react";
 
 export default function App() {
   const location = useLocation();
@@ -36,6 +38,7 @@ export default function App() {
   const staffNav = [
     { label: "Dashboard", path: "/staff", icon: Home },
     { label: "Pending Requests", path: "/staff/pending", icon: CheckSquare },
+    { label: "GatePass", path: "/staff/gatepasses", icon: Ticket},
     { label: "Profile", path: "/staff/profile", icon: User },
   ];
 
@@ -94,6 +97,7 @@ export default function App() {
           <Route index element={<StaffDashboard />} />
           <Route path="pending" element={<PendingRequests />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="gatepasses" element={<GatePassListPage/>} />
           <Route
             path="/staff/leave-requests/:id"
             element={<LeaveRequestDetail />}

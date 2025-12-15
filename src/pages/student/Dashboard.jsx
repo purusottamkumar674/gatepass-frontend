@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,30 +9,45 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await api.get("/api/leave-requests/my/");
-        setRequests(res.data);
-      } catch (err) {
-        console.error("Failed to load dashboard data", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
-  const stats = {
-    total: requests.length,
-    approved: requests.filter(r => r.final_status === "Approved").length,
-    pending: requests.filter(r => r.final_status === "Pending").length,
-    rejected: requests.filter(r => r.final_status === "Rejected").length,
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/api/leave-requests/my/");
+      // ✅ IMPORTANT FIX
+      setRequests(Array.isArray(res.data.results) ? res.data.results : []);
+    } catch (err) {
+      console.error("Failed to load dashboard data", err);
+      setRequests([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const recentRequests = [...requests]
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 5);
+  /* =========================
+     Stats
+     ========================= */
+
+  const stats = useMemo(() => {
+    return {
+      total: requests.length,
+      approved: requests.filter(r => r.final_status === "Approved").length,
+      pending: requests.filter(r => r.final_status === "Pending").length,
+      rejected: requests.filter(r => r.final_status === "Rejected").length,
+    };
+  }, [requests]);
+
+  /* =========================
+     Recent Requests
+     ========================= */
+
+  const recentRequests = useMemo(() => {
+    return [...requests]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 5);
+  }, [requests]);
 
   const statusColor = (status) => {
     switch (status) {
@@ -47,6 +62,10 @@ export default function Dashboard() {
     }
   };
 
+  /* =========================
+     Loading State
+     ========================= */
+
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -59,7 +78,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
+      {/* ===== Stats ===== */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Total Requests" value={stats.total} />
         <StatCard label="Approved" value={stats.approved} />
@@ -67,9 +86,11 @@ export default function Dashboard() {
         <StatCard label="Rejected" value={stats.rejected} />
       </div>
 
-      {/* Recent Requests */}
+      {/* ===== Recent Requests ===== */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Leave Requests</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          Recent Leave Requests
+        </h3>
 
         {recentRequests.length === 0 && (
           <p className="text-sm text-muted-foreground">
@@ -105,6 +126,10 @@ export default function Dashboard() {
     </div>
   );
 }
+
+/* =========================
+   Stat Card
+   ========================= */
 
 function StatCard({ label, value }) {
   return (
