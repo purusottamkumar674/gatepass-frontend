@@ -1,30 +1,30 @@
 import axios from "axios";
 import { emitAuthEvent, AUTH_EVENTS } from "@/lib/authEvents";
 
-
 export const api = axios.create({
-  // baseURL: "http://localhost:8000",
-  baseURL: "https://p4.project1.space",
+  baseURL: "http://localhost:8000",
+  withCredentials: true, // safe to keep (cookies / CSRF future-ready)
 });
 
-// Attach token automatically to every request
+/* ================================
+   REQUEST INTERCEPTOR
+   - Attaches access token
+   - Runs BEFORE every request
+================================ */
 api.interceptors.request.use(
   (config) => {
-    const publicEndpoints = [
-      "/accounts/login/",
-      "/accounts/signup/",
-      "/accounts/refresh/",
-    ];
+    const tokensRaw = localStorage.getItem("tokens");
 
-    if (publicEndpoints.some((url) => config.url?.includes(url))) {
-      return config;
-    }
-
-    const tokens = localStorage.getItem("tokens");
-    if (tokens) {
-      const { access } = JSON.parse(tokens);
-      if (access) {
-        config.headers.Authorization = `Bearer ${access}`;
+    if (tokensRaw) {
+      try {
+        const { access } = JSON.parse(tokensRaw);
+        if (access) {
+          config.headers.Authorization = `Bearer ${access}`;
+        }
+      } catch {
+        // Corrupted tokens → clean up
+        localStorage.removeItem("tokens");
+        localStorage.removeItem("user");
       }
     }
 
@@ -32,82 +32,53 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
-let isRefreshing = false;
-let failedQueue = [];
 
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) prom.reject(error);
-    else prom.resolve(token);
-  });
-  failedQueue = [];
-};
+/* ================================
+   RESPONSE INTERCEPTOR
+   - Handles expired / invalid token
+   - Emits SESSION_EXPIRED only when valid
+================================ */
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  (error) => {
+    if (!error.response) {
+      // Network / CORS / server down
+      return Promise.reject(error);
+    }
 
-    // If access token expired
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
+    const status = error.response.status;
+    const url = error.config?.url || "";
 
-      const tokens = JSON.parse(localStorage.getItem("tokens"));
+    // Do NOT interfere with auth endpoints
+    const authEndpoints = [
+      "/accounts/login/",
+      "/accounts/signup/",
+    ];
 
-      if (!tokens?.refresh) {
-        forceLogout();
-        return Promise.reject(error);
-      }
+    if (authEndpoints.some((endpoint) => url.includes(endpoint))) {
+      return Promise.reject(error);
+    }
 
-      // If refresh already in progress, queue requests
-      if (isRefreshing) {
-        return new Promise(function (resolve, reject) {
-          failedQueue.push({ resolve, reject });
-        }).then((token) => {
-          originalRequest.headers.Authorization = "Bearer " + token;
-          return api(originalRequest);
-        });
-      }
+    const tokensRaw = localStorage.getItem("tokens");
+    const hasAccessToken =
+      tokensRaw && JSON.parse(tokensRaw)?.access;
 
-      isRefreshing = true;
-
-      try {
-        const res = await api.post("/accounts/refresh/", {
-          refresh: tokens.refresh,
-        });
-
-        const newAccess = res.data.access;
-
-        localStorage.setItem(
-          "tokens",
-          JSON.stringify({
-            ...tokens,
-            access: newAccess,
-          })
-        );
-
-        api.defaults.headers.Authorization = `Bearer ${newAccess}`;
-        processQueue(null, newAccess);
-
-        originalRequest.headers.Authorization = `Bearer ${newAccess}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        forceLogout();
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+    // 🔴 Access token existed but backend says 401 → session expired
+    if (status === 401 && hasAccessToken) {
+      forceLogout();
     }
 
     return Promise.reject(error);
   }
 );
 
+/* ================================
+   FORCE LOGOUT (single authority)
+================================ */
 function forceLogout() {
   localStorage.removeItem("tokens");
+  localStorage.removeItem("user");
+
   emitAuthEvent(AUTH_EVENTS.SESSION_EXPIRED);
 }
 

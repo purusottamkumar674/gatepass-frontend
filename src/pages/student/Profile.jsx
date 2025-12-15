@@ -62,7 +62,7 @@ export default function Profile() {
           {isStudent && student && (
             <>
               <Info label="PRN" value={student.prn} />
-              <Info label="Branch" value={student.branch} />
+              <Info label="Department" value={student.department} />
               <Info label="Hostel" value={student.hostel} />
               <Info label="Parent Name" value={student.parents_name || "—"} />
               <Info label="Parent Number" value={student.parents_number || "—"} />

@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, MessageCircle } from "lucide-react";
+import { Phone, MessageCircle, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LeaveRequestDetail({
   request,
@@ -9,7 +11,54 @@ export default function LeaveRequestDetail({
   onReject,
   onBack,
 }) {
+  const { toast } = useToast();
   const { user } = request;
+
+  const [actionLoading, setActionLoading] = useState(null); // "approve" | "reject" | null
+
+  const handleApprove = async () => {
+    try {
+      setActionLoading("approve");
+      await onApprove(request.id);
+
+      toast({
+        title: "Leave Approved",
+        description: "The leave request has been approved successfully.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Approval Failed",
+        description:
+          err?.response?.data?.message ||
+          "Unable to approve leave. Please try again.",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      setActionLoading("reject");
+      await onReject(request.id);
+
+      toast({
+        title: "Leave Rejected",
+        description: "The leave request has been rejected.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Rejection Failed",
+        description:
+          err?.response?.data?.message ||
+          "Unable to reject leave. Please try again.",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -24,9 +73,7 @@ export default function LeaveRequestDetail({
           </h1>
         </div>
 
-        <Badge className="bg-amber-100 text-amber-700 w-fit">
-          {request.final_status}
-        </Badge>
+        <StatusBadge status={request.final_status} />
       </div>
 
       {/* STUDENT INFO */}
@@ -90,7 +137,7 @@ export default function LeaveRequestDetail({
         </div>
       </Card>
 
-      {/* ATTACHMENT INLINE */}
+      {/* ATTACHMENT */}
       {request.attachment && (
         <Card className="p-6">
           <h2 className="font-semibold mb-4">Attachment</h2>
@@ -115,20 +162,31 @@ export default function LeaveRequestDetail({
         <Button
           variant="destructive"
           className="flex-1"
-          onClick={() => onReject(request.id)}
+          disabled={actionLoading !== null}
+          onClick={handleReject}
         >
+          {actionLoading === "reject" && (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          )}
           Reject
         </Button>
+
         <Button
           className="flex-1"
-          onClick={() => onApprove(request.id)}
+          disabled={actionLoading !== null}
+          onClick={handleApprove}
         >
+          {actionLoading === "approve" && (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          )}
           Approve
         </Button>
       </div>
     </div>
   );
 }
+
+/* ----------------- Helpers ----------------- */
 
 function Info({ label, value }) {
   return (
@@ -141,5 +199,19 @@ function Info({ label, value }) {
 
 function formatDate(date) {
   return date ? new Date(date).toLocaleDateString() : "—";
+}
+
+function StatusBadge({ status }) {
+  const map = {
+    Pending: "bg-amber-100 text-amber-700",
+    Approved: "bg-green-100 text-green-700",
+    Rejected: "bg-red-100 text-red-700",
+  };
+
+  return (
+    <Badge className={`${map[status] || "bg-gray-100 text-gray-700"} w-fit`}>
+      {status}
+    </Badge>
+  );
 }
 

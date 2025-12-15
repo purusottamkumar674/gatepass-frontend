@@ -125,7 +125,7 @@ export default function MyRequests() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-8">
                     <Badge variant="outline">
                       Teacher: {req.approvedby_teacher ? "✔" : "—"}
                     </Badge>
@@ -133,7 +133,13 @@ export default function MyRequests() {
                       HOD: {req.approvedby_hod ? "✔" : "—"}
                     </Badge>
                     <Badge variant="outline">
+                      Dean: {req.approvedby_dean ? "✔" : "—"}
+                    </Badge>
+                    <Badge variant="outline">
                       Warden: {req.approvedby_warden ? "✔" : "—"}
+                    </Badge>
+                    <Badge variant="outline">
+                      Admin: {req.approvedby_admin ? "✔" : "—"}
                     </Badge>
                   </div>
 

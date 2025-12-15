@@ -94,7 +94,7 @@ export default function ApplyLeave() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Normal">Normal</SelectItem>
-                  <SelectItem value="Urgent">Urgent</SelectItem>
+                  <SelectItem value="Holiday">Holiday</SelectItem>
                 </SelectContent>
               </Select>
             </div>

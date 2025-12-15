@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/axios";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user} = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -27,21 +27,9 @@ export default function Login() {
       setLoading(true);
       const res = await api.post("/accounts/login/", payload);
 
-      const { user, tokens } = res.data;
-      login(user, tokens);
-
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.username}`,
-      });
-
-      if (user.usertype === "student") {
-        navigate("/student", { replace: true });
-      } else if (user.usertype === "staff") {
-        navigate("/staff", { replace: true });
-      } else {
-        navigate("/admin", { replace: true });
-      }
+      const { tokens } = res.data;
+      console.log(tokens);
+      login(tokens);
     } catch (err) {
       const message =
         err.response?.data?.detail ||
@@ -57,6 +45,19 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+
+    toast({
+      title: "Login successful",
+      description: `Welcome back, ${user.username}`,
+    });
+
+    if (user.usertype === "student") navigate("/student", { replace: true });
+    else if (user.usertype === "staff") navigate("/staff", { replace: true });
+    else navigate("/admin", { replace: true });
+  }, [user]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
@@ -93,4 +94,3 @@ export default function Login() {
     </div>
   );
 }
-

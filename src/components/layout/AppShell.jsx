@@ -3,26 +3,43 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function AppShell({ title, nav, children }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   return (
-    // 🔒 Lock app to viewport & prevent body scroll
     <div className="h-screen w-screen overflow-hidden flex bg-gray-50">
-      
-      {/* SIDEBAR (never scrolls) */}
+      {/* MOBILE OVERLAY */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* SIDEBAR */}
       <aside
-        className={`bg-white border-r transition-all duration-300
-        ${collapsed ? "w-16" : "w-60"} flex-shrink-0`}
+        className={`
+          fixed md:static z-50 h-full
+          bg-white border-r transition-all duration-300
+          ${collapsed ? "w-16" : "w-60"}
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0
+        `}
       >
         <Card className="h-full rounded-none p-4 flex flex-col">
-          
           {/* HEADER */}
           <div className="flex items-center justify-between mb-4">
             {!collapsed && (
@@ -34,14 +51,18 @@ export default function AppShell({ title, nav, children }) {
                 />
                 <div>
                   <p className="font-semibold">GatePass</p>
-                  <p className="text-xs text-gray-500">Campus Access</p>
+                  <p className="text-xs text-gray-500">
+                    Campus Access
+                  </p>
                 </div>
               </div>
             )}
 
+            {/* DESKTOP COLLAPSE */}
             <Button
               size="icon"
               variant="ghost"
+              className="hidden md:inline-flex"
               onClick={() => setCollapsed(!collapsed)}
             >
               {collapsed ? (
@@ -50,20 +71,31 @@ export default function AppShell({ title, nav, children }) {
                 <ChevronLeft className="h-5 w-5" />
               )}
             </Button>
+
+            {/* MOBILE CLOSE */}
+            <Button
+              size="icon"
+              variant="ghost"
+              className="md:hidden"
+              onClick={() => setMobileOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
 
-          {/* NAV (can scroll if too many links) */}
+          {/* NAV */}
           <nav className="space-y-1 flex-1 overflow-y-auto">
             {nav.map((item, index) =>
-              item ? (
-                <div key={index}>
-                  {React.cloneElement(item, { collapsed })}
-                </div>
-              ) : null
+              item
+                ? React.cloneElement(item, {
+                    collapsed,
+                    onClick: () => setMobileOpen(false),
+                  })
+                : null
             )}
           </nav>
 
-          {/* PROFILE + LOGOUT (fixed bottom) */}
+          {/* PROFILE + LOGOUT */}
           <div className="mt-4 space-y-2">
             {!collapsed && user && (
               <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border">
@@ -88,12 +120,10 @@ export default function AppShell({ title, nav, children }) {
                 logout();
                 navigate("/login", { replace: true });
               }}
-              title={collapsed ? "Logout" : undefined}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
                          text-gray-700 hover:bg-red-50 hover:text-red-600 transition"
             >
               <svg
-                xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 shrink-0"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -111,13 +141,26 @@ export default function AppShell({ title, nav, children }) {
         </Card>
       </aside>
 
-      {/* MAIN CONTENT (only this scrolls) */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold text-gray-800">
-              {title}
-            </h1>
+      {/* MAIN CONTENT */}
+      <main className="flex-1 overflow-y-auto md:ml-0">
+        <div className="p-4 md:p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              {/* MOBILE MENU BUTTON */}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="md:hidden"
+                onClick={() => setMobileOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+
+              <h1 className="text-xl md:text-2xl font-semibold text-gray-800">
+                {title}
+              </h1>
+            </div>
+
             <Input
               placeholder="Search…"
               className="w-64 hidden md:block"

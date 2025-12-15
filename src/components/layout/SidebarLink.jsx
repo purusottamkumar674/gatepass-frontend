@@ -1,6 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
 
-export default function SidebarLink({ label, to, icon: Icon, collapsed }) {
+export default function SidebarLink({
+  label,
+  to,
+  icon: Icon,
+  collapsed,
+  onClick,
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
@@ -13,7 +19,10 @@ export default function SidebarLink({ label, to, icon: Icon, collapsed }) {
 
   return (
     <button
-      onClick={() => navigate(to)}
+      onClick={() => {
+        navigate(to);
+        onClick?.();
+      }}
       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
         ${
           active

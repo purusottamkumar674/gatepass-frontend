@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Loader } from "@/components/ui/loader";
 import { api } from "@/lib/axios";
 
 const STATUS_FILTERS = ["All", "Pending", "Approved", "Rejected"];
@@ -70,7 +71,8 @@ export default function StaffDashboard() {
 
       {/* ===== LIST ===== */}
       <div className="space-y-4">
-        {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
+        {loading && <Loader className="min-h-[60vh]" label="Loading…" />}
+
 
         {!loading && filteredRequests.length === 0 && (
           <p className="text-sm text-muted-foreground">
@@ -123,21 +125,26 @@ function LeaveRow({ request }) {
       </div>
 
       {/* ===== APPROVAL STATUS ===== */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-        <ApprovalStatus
-          label="Teacher"
-          approved={request.approvedby_teacher}
-          time={request.approvedby_teacher_at}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
         <ApprovalStatus
           label="HOD"
           approved={request.approvedby_hod}
           time={request.approvedby_hod_at}
         />
         <ApprovalStatus
+          label="Dean"
+          approved={request.approvedby_dean}
+          time={request.approvedby_dean_at}
+        />
+        <ApprovalStatus
           label="Warden"
           approved={request.approvedby_warden}
           time={request.approvedby_warden_at}
+        />
+        <ApprovalStatus
+          label="Admin"
+          approved={request.approvedby_admin}
+          time={request.approvedby_admin_at}
         />
       </div>
     </Card>
@@ -150,7 +157,7 @@ function LeaveRow({ request }) {
 
 function ApprovalStatus({ label, approved, time }) {
   return (
-    <div className="flex items-center justify-between border rounded px-3 py-2">
+    <div className="flex flex-col items-center justify-between border rounded px-3 py-2">
       <span className="text-muted-foreground">{label}</span>
 
       {approved ? (
