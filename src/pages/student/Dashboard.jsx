@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/axios";
+import { CalendarDays, FileText } from "lucide-react";
 
 export default function Dashboard() {
   const [requests, setRequests] = useState([]);
@@ -16,8 +17,8 @@ export default function Dashboard() {
     setLoading(true);
     try {
       const res = await api.get("/api/leave-requests/my/");
-      // ✅ IMPORTANT FIX
-      setRequests(Array.isArray(res.data.results) ? res.data.results : []);
+      // ✅ FIX: API returns ARRAY
+      setRequests(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to load dashboard data", err);
       setRequests([]);
@@ -63,14 +64,14 @@ export default function Dashboard() {
   };
 
   /* =========================
-     Loading State
+     Loading
      ========================= */
 
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map(i => (
-          <Skeleton key={i} className="h-24 rounded-md" />
+          <Skeleton key={i} className="h-24 rounded-lg" />
         ))}
       </div>
     );
@@ -88,40 +89,50 @@ export default function Dashboard() {
 
       {/* ===== Recent Requests ===== */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">
-          Recent Leave Requests
-        </h3>
-
-        {recentRequests.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No leave requests yet.
-          </p>
-        )}
-
-        <div className="space-y-3">
-          {recentRequests.map(req => (
-            <div
-              key={req.id}
-              className="flex items-center justify-between border-b last:border-none pb-2"
-            >
-              <div>
-                <p className="font-medium">{req.subject}</p>
-                <p className="text-sm text-muted-foreground">
-                  {req.type}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Badge className={statusColor(req.final_status)}>
-                  {req.final_status}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(req.created_at).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          ))}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Recent Leave Requests</h3>
         </div>
+
+        {recentRequests.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            You haven’t applied for any leave yet.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {recentRequests.map(req => (
+              <div
+                key={req.id}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b last:border-none pb-3"
+              >
+                {/* LEFT */}
+                <div className="space-y-1">
+                  <p className="font-medium flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    {req.subject}
+                  </p>
+
+                  <p className="text-sm text-muted-foreground">
+                    {req.type} Leave •{" "}
+                    {formatDate(req.starting_date)} →{" "}
+                    {formatDate(req.ending_date)}
+                  </p>
+                </div>
+
+                {/* RIGHT */}
+                <div className="flex items-center gap-3">
+                  <Badge className={statusColor(req.final_status)}>
+                    {req.final_status}
+                  </Badge>
+
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <CalendarDays className="h-3 w-3" />
+                    {formatDate(req.created_at)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );
@@ -138,5 +149,14 @@ function StatCard({ label, value }) {
       <p className="text-2xl font-semibold mt-1">{value}</p>
     </Card>
   );
+}
+
+/* =========================
+   Helpers
+   ========================= */
+
+function formatDate(date) {
+  if (!date) return "—";
+  return new Date(date).toLocaleDateString();
 }
 

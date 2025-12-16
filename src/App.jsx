@@ -6,7 +6,9 @@ import SidebarLink from "@/components/layout/SidebarLink";
 // Auth
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
+
 import NotFound from "@/pages/NotFound";
+import CoreInfoPage from "@/pages/CoreInfoPage";
 
 // Student
 import StudentDashboard from "@/pages/student/Dashboard";
@@ -19,7 +21,7 @@ import StaffDashboard from "@/pages/staff/Dashboard";
 import PendingRequests from "@/pages/staff/PendingRequests";
 
 // Icons
-import { Home, FileText, ListTodo, User, CheckSquare } from "lucide-react";
+import { Home, FileText, ListTodo, User, CheckSquare, Building } from "lucide-react";
 import LeaveRequestDetail from "./pages/staff/LeaveRequestDetail";
 import SessionExpiredDialog from "./components/SessionExpiredDialog";
 import GatePassListPage from "./pages/staff/GatePassList";
@@ -35,6 +37,7 @@ export default function App() {
     { label: "Apply Leave", path: "/student/apply-leave", icon: FileText },
     { label: "My Requests", path: "/student/my-requests", icon: ListTodo },
     { label: "GatePass", path: "/student/gatepasses", icon: Ticket},
+    { label: "Campus", path: "/student/core-info", icon: Building },
     { label: "Profile", path: "/student/profile", icon: User },
   ];
 
@@ -42,6 +45,7 @@ export default function App() {
     { label: "Dashboard", path: "/staff", icon: Home },
     { label: "Pending Requests", path: "/staff/pending", icon: CheckSquare },
     { label: "GatePass", path: "/staff/gatepasses", icon: Ticket},
+    { label: "Campus", path: "/staff/core-info", icon: Building },
     { label: "Profile", path: "/staff/profile", icon: User },
   ];
 
@@ -75,6 +79,7 @@ export default function App() {
           <Route path="apply-leave" element={<ApplyLeave />} />
           <Route path="my-requests" element={<MyRequests />} />
           <Route path="gatepasses" element={<StudentGatePassListPage/>} />
+          <Route path="core-info" element={<CoreInfoPage/>} />
           <Route path="profile" element={<Profile />} />
           <Route
             path="/student/gate-pass/view"
@@ -107,6 +112,7 @@ export default function App() {
           <Route path="pending" element={<PendingRequests />} />
           <Route path="profile" element={<Profile />} />
           <Route path="gatepasses" element={<GatePassListPage/>} />
+          <Route path="core-info" element={<CoreInfoPage/>} />
           <Route
             path="/staff/leave-requests/:id"
             element={<LeaveRequestDetail />}
@@ -124,4 +130,5 @@ export default function App() {
     </>
   );
 }
+
 
