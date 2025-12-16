@@ -24,6 +24,8 @@ import LeaveRequestDetail from "./pages/staff/LeaveRequestDetail";
 import SessionExpiredDialog from "./components/SessionExpiredDialog";
 import GatePassListPage from "./pages/staff/GatePassList";
 import { Ticket } from "lucide-react";
+import StudentGatePassListPage from "./pages/student/StudentGatePassListPage";
+import StudentGatePassViewPage from "./pages/student/StudentGatePassViewPage";
 
 export default function App() {
   const location = useLocation();
@@ -32,6 +34,7 @@ export default function App() {
     { label: "Dashboard", path: "/student", icon: Home },
     { label: "Apply Leave", path: "/student/apply-leave", icon: FileText },
     { label: "My Requests", path: "/student/my-requests", icon: ListTodo },
+    { label: "GatePass", path: "/student/gatepasses", icon: Ticket},
     { label: "Profile", path: "/student/profile", icon: User },
   ];
 
@@ -71,7 +74,13 @@ export default function App() {
           <Route index element={<StudentDashboard />} />
           <Route path="apply-leave" element={<ApplyLeave />} />
           <Route path="my-requests" element={<MyRequests />} />
+          <Route path="gatepasses" element={<StudentGatePassListPage/>} />
           <Route path="profile" element={<Profile />} />
+          <Route
+            path="/student/gate-pass/view"
+            element={<StudentGatePassViewPage />}
+          />
+
         </Route>
 
         {/* Staff */}

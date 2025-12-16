@@ -125,10 +125,7 @@ export default function MyRequests() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-8">
-                    <Badge variant="outline">
-                      Teacher: {req.approvedby_teacher ? "✔" : "—"}
-                    </Badge>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-8">
                     <Badge variant="outline">
                       HOD: {req.approvedby_hod ? "✔" : "—"}
                     </Badge>

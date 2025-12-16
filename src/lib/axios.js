@@ -2,8 +2,8 @@ import axios from "axios";
 import { emitAuthEvent, AUTH_EVENTS } from "@/lib/authEvents";
 
 export const api = axios.create({
-  // baseURL: "http://localhost:8000",
-  baseURL: "https://p4.project1.space",
+  baseURL: "http://localhost:8000",
+  // baseURL: "https://p4.project1.space",
   withCredentials: true, // safe to keep (cookies / CSRF future-ready)
 });
 
